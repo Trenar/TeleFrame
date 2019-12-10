@@ -10,12 +10,12 @@ var schedules = class {
     var self = this;
 
     //generate schedule for turning the monitor on
-    this.monitorOnSchedule = schedule.scheduleJob('* * ' + this.turnOnHour.toString() + ' * * *', function() {
+    this.monitorOnSchedule = schedule.scheduleJob('0 0 ' + this.turnOnHour.toString() + ' * * *', function() {
       self.turnMonitorOn();
     });
 
     //generate schedule for turning the monitor off
-    this.monitorOffSchedule = schedule.scheduleJob('* * ' + this.turnOffHour.toString() + ' * * *', function() {
+    this.monitorOffSchedule = schedule.scheduleJob('0 0 ' + this.turnOffHour.toString() + ' * * *', function() {
       self.turnMonitorOff();
     });
 
@@ -26,7 +26,7 @@ var schedules = class {
   //execute command for turning the monitor on
   turnMonitorOn() {
     var self = this;
-    exec("tvservice --preferred && sudo chvt 6 && sudo chvt 7", self.opts, function(error, stdout, stderr) {
+    exec("bash ../tools/screen_switch.sh", self.opts, function(error, stdout, stderr) {
       self.checkForExecError(error, stdout, stderr);
     });
   }
@@ -34,7 +34,7 @@ var schedules = class {
   //execute command for turning the monitor off
   turnMonitorOff() {
 var self = this;
-    exec("tvservice -o", self.opts, function(error, stdout, stderr) {
+    exec("bash ../tools/screen_switch.sh", self.opts, function(error, stdout, stderr) {
       self.checkForExecError(error, stdout, stderr);
     });
   }
