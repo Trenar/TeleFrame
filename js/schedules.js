@@ -5,6 +5,7 @@ var schedules = class {
   constructor(config, logger) {
     this.turnOnHour = config.turnOnHour;
     this.turnOffHour = config.turnOffHour;
+	this.rebootHour = config.rebootHour;
     this.logger = logger;
     this.opts = {timeout: 15000};
     var self = this;
@@ -18,12 +19,16 @@ var schedules = class {
     this.monitorOffSchedule = schedule.scheduleJob('0 0 ' + this.turnOffHour.toString() + ' * * *', function() {
       self.turnMonitorOff();
     });
+	
+	this.rebootSchedule = schedule.scheduleJob('0 0 ' + this.rebootHour.toString() + ' * * *', function() {
+		self.rebootPi();
+	});
 
     this.logger.info('Scheduler started ...')
 
   }
 
-  //execute command for turning the monitor on
+  // execute command for turning the monitor on
   turnMonitorOn() {
     var self = this;
     exec("bash ../tools/screen_switch.sh", self.opts, function(error, stdout, stderr) {
@@ -31,13 +36,22 @@ var schedules = class {
     });
   }
 
-  //execute command for turning the monitor off
+  // execute command for turning the monitor off
   turnMonitorOff() {
-var self = this;
+    var self = this;
     exec("bash ../tools/screen_switch.sh", self.opts, function(error, stdout, stderr) {
       self.checkForExecError(error, stdout, stderr);
     });
   }
+  
+  // reboot the pi
+  rebootPi() {
+    var self = this;
+    exec("reboot", self.opts, function(error, stdout, stderr) {
+      self.checkForExecError(error, stdout, stderr);
+    });
+  }
+  
 
   //check for execution error
   checkForExecError(error, stdout, stderr, res) {
