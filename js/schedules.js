@@ -31,7 +31,7 @@ var schedules = class {
   // execute command for turning the monitor on
   turnMonitorOn() {
     var self = this;
-    exec("bash ../tools/screen_switch.sh", self.opts, function(error, stdout, stderr) {
+    exec("bash ./tools/screen_switch.sh", self.opts, function(error, stdout, stderr) {
       self.checkForExecError(error, stdout, stderr);
     });
   }
@@ -39,7 +39,7 @@ var schedules = class {
   // execute command for turning the monitor off
   turnMonitorOff() {
     var self = this;
-    exec("bash ../tools/screen_switch.sh", self.opts, function(error, stdout, stderr) {
+    exec("bash ./tools/screen_switch.sh", self.opts, function(error, stdout, stderr) {
       self.checkForExecError(error, stdout, stderr);
     });
   }
