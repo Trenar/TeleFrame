@@ -47,7 +47,7 @@ var schedules = class {
   // reboot the pi
   rebootPi() {
     var self = this;
-    exec("reboot", self.opts, function(error, stdout, stderr) {
+    exec("sudo reboot", self.opts, function(error, stdout, stderr) {
       self.checkForExecError(error, stdout, stderr);
     });
   }
