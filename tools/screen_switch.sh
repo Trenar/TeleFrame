@@ -6,8 +6,8 @@
 gpio mode 1 out
 
 # trigger the optocoupler
-gpio write 1
+gpio write 1 1
 # wait for the display to respond
 sleep 0.05
 # turn off the trigger
-gpio write 0
+gpio write 1 0
