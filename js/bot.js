@@ -92,6 +92,7 @@ var Bot = class {
                 chatName,
                 ctx.message.message_id
               );
+              ctx.reply("\u{1F44D}\u{1F4F8}");
             })
             .catch((err) => {
               this.logger.error(err);
@@ -123,6 +124,7 @@ var Bot = class {
                 chatName,
                 ctx.message.message_id
               );
+              ctx.reply("\u{1F44D}\u{1F3A5}");
             })
             .catch((err) => {
               this.logger.error(err);
