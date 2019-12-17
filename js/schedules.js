@@ -44,10 +44,10 @@ var schedules = class {
     });
   }
   
-  // reboot the pi
+  // restart teleframe
   rebootPi() {
     var self = this;
-    exec("sudo reboot", self.opts, function(error, stdout, stderr) {
+    exec("pm2 restart TeleFrame", self.opts, function(error, stdout, stderr) {
       self.checkForExecError(error, stdout, stderr);
     });
   }
