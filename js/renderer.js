@@ -371,9 +371,9 @@ function setTouchbarIconStatus() {
       touchBarElements["starImage"].iconElement.classList = "far fa-star";
     }
     if (isPaused) {
-      touchBarElements["playPause"].iconElement.classList = "far fa-pause-circle";
-    } else {
       touchBarElements["playPause"].iconElement.classList = "far fa-play-circle";
+    } else {
+      touchBarElements["playPause"].iconElement.classList = "far fa-pause-circle";
     }
   }
   if (images.length > 1) {
