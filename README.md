@@ -66,10 +66,11 @@ Also note that:
 
 ## Configuration
 
-1. Copy `TeleFrame/config/config.js.example` to `TeleFrame/config/config.js`. \
+1. Copy `TeleFrame/config/config.example.json` to `TeleFrame/config/config.json`. \
    **Note:** If you used the installer script. This step is already done for you.
 
 2. Modify your required settings.
+  **Note:** You only need to define settings that differ from the standard configuration.
 
 
 The following properties can be configured:
@@ -78,6 +79,7 @@ The following properties can be configured:
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `botToken`           | The token of the Telegram Bot, which will recieve the images. How to create a bot and get the token is explained [here](https://core.telegram.org/bots#6-botfather). |
 | `whitelistChats`     | Use this to only allow certain users to send photos to your TeleFrame. See hints below.                                                                              |
+| `whitelistAdmins`    | Use this to increase individual users as admin.                                                                                                                      |
 | `playSoundOnRecieve` | Play a sound on recieving a message, set `false` to turn off.                                                                                                        |
 | `showVideos`         | When set to true, videos that are send to the bot are also shown.                                                                                                    |
 | `playVideoAudio`     | If recieved videos should be played with sound or not.                                                                                                               |
@@ -86,30 +88,22 @@ The following properties can be configured:
 | `fadeTime`           | The fading time between two images.                                                                                                                                  |
 | `interval`           | The time that an image is shown.                                                                                                                                     |
 | `imageCount`         | Defines how many different images are shown in the slideshow.                                                                                                        |
-| 'autoDeleteImages'   | Defines if old images should be deleted, when they are no longer used in the slideshow (see 'imageCount'). Starred images will not be deleted.                       |
-| `newPhotoMessage`    | Message that is shown when the bot recieved a new image.                                                                                                             |
-| `newVideoMessage`    | Message that is shown when the bot recieved a new video.                                                                                                             |
+| `autoDeleteImages`   | Defines if old images should be deleted, when they are no longer used in the slideshow (see 'imageCount'). Starred images will not be deleted.                       |
 | `showSender`         | When set to true, TeleFrame will show the name of the sender when the image is shown.                                                                                |
 | `showCaption`        | When set to true, TeleFrame will show the caption of the image when the image is shown.                                                                              |
 | `fullscreen`         | When set to true, TeleFrame will run in fullscreen mode.                                                                                                             |
 | `toggleMonitor`      | When set to true, TeleFrame will switch the monitor off and on at the defined hours.                                                                                 |
-| `turnOnHour`         | Defines when the monitor shuld be turned on.                                                                                                                         |
-| `turnOffHour`        | Defines when the monitor shuld be turned off.                                                                                                                        |
+| `turnOnHour`         | Defines when the monitor should be turned on.                                                                                                                        |
+| `turnOffHour`        | Defines when the monitor should be turned off.                                                                                                                       |
 | `confirmDeleteImage` | Defines if to show a confirm message before delete an image `true` or `false`                                                                                        |
-| `deleteMessage`      | Message that is shown when the deleteImage icon was touched. Default 'Really remove?'                                                                                |
-| `deleteConfirmText`  | Text for the delete message confirm button. Default 'Remove'                                                                                                         |
-| `deleteCancelText`   | Text for the delete message cancel button. Default "Cancel"                                                                                                          |
 | `confirmShutdown`    | Defines if to show a confirm message before shutdown the system `true` or `false`                                                                                    |
-| `shutdownMessage`    | Message that is shown when the shutdown icon was touched. Default 'Really shutdown?'                                                                                 |
-| `shutdownConfirmText` | Text for the shutdown message confirm button. Default 'Remove'                                                                                                      |
-| `shutdownCancelText` | Text for the shutdown message cancel button. Default "Cancel"                                                                                                        |
 | `confirmReboot`      | Defines if to show a confirm message before rebooting the system `true` or `false`                                                                                   |
-| `rebootMessage`      | Message that is shown when the reboot icon was touched. Default 'Really reboot?'                                                                                     |
-| `rebootConfirmText`  | Text for the shutdown message confirm button. Default 'Reboot'                                                                                                       |
-| `rebootCancelText`   | Text for the shutdown message cancel button. Default "Cancel"                                                                                                        |
 | `keys`               | Defines an object with 4 strings specifying the keyboard shortcuts for play, next, previous and pause. Set to null for no controls                                   |
 | `voiceReply`         | Defines an object with the config for sending voicemessages with TeleFrame, see info bellow                                                                          |
 | `touchBar`           | Defines an object with the config for using a touch bar for executing commands instead of the default touch gestures.                                                |
+| `language`           | Defines the language to use.  See `config.example.js` 'Language configuration' for details                                                                           |
+| `adminAction`        | Defines an object with the config for sending Admin-Commands to the TeleFrame, see info bellow                                                                          |
+
 
 ## Whitelist Chats
 
@@ -144,11 +138,41 @@ A very simple way to respond to the images is by using TeleFrame`s voice reply f
 | ----------------------- | ----------------------------------------------------------------------------------------- |
 | `key`                   | The keyboardkey to start the voice recording                                              |
 | `maxRecordTime`         | How long the recorder will record if there is no silence detected (in milliseconds)       |
-| `recordingMessageTitle` | The title of the recording dialog displayed on the frame during record                    |
-| `recordingPreMessage`   | The message of the recording dialog displayed on the frame during record before chat name |
-| `recordingPostMessage`  | The message of the recording dialog displayed on the frame during record after char name  |
-| `recordingDone`         | The message of the recording dialog displayed on the frame when recording has finished    |
-| `recordingError`        | The error message of the recording dialog displayed when recording has failed             |
+
+## Sending Admin-Commands to the TeleFrame
+
+As administrator of a TeleFrame, it could be very useful to execute commands on the TeleFrame computer.
+With the TeleFrame-Bot you are able to send these commands without logging on to the remote computer.
+
+Examples for such admin actions could be:
+- Reboot the Raspberry Pi
+- Restart of the TeleFrame application
+- Open a VPN connection
+- Close a VPN connection
+- ....
+
+To enable Admin-Action on the TeleFrame, following settings must be made in the Config file:
+- Adding the Chat-ID to the list of Administators (whitelistAdmins)
+- Activating the Admin Actions (allowAdminAction)
+- Adding an Action Object (actions) [see adminAction-Object]
+- Activation of the action object (enable)
+
+Now the action on the TeleFrame can be triggered by sending the corresponding command (e.g. /reboot for the command named "reboot").
+
+### adminAction-object
+| **Option**              | **Description**                                                                           |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| `allowAdminAction`      | Global Switch to enable the Admin-Actions                                                 |
+| `actions`               | Defines an array of action-objects, see info bellow                                       |
+
+### action-object
+| **Option**              | **Description**                                                                           |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| `name`                  | Name of the action                                                                        |
+| `command`               | Command to execute on TeleFrame                                                          |
+| `enable`                | When set to True, the command is added to the bot                                         |
+
+
 
 ## Touchscreen support
 * Navigate through the images by touching at the left or right side of your touchscreen.
