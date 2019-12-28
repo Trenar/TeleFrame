@@ -47,7 +47,7 @@ var Bot = class {
     this.bot.start((ctx) => ctx.reply("Welcome"));
 
     //Help message
-    this.bot.help((ctx) => ctx.reply("Send me an image."));
+    this.bot.help((ctx) => ctx.reply("Send me an image or type /helpAdmin for admin actions."));
 
 
     //Middleware Check for whitelisted  ChatID
