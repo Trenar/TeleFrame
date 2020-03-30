@@ -11,14 +11,18 @@
 **TeleFrame** is an open source digital image frame that displays images and videos, which were send to an Telegram Bot.
 
 ## !!! IMPORTANT !!!
-**To update TeleFrame on a Raspberry PI, an additional parameter is currently required to define the processor architecture: `npm install --arch=$(uname -m)`**
+**To update TeleFrame on a Raspberry PI, it is required to remove the electron folder and an additional parameter for `npm` to define the processor architecture!**
+**Also, make sure that you have the latest version of `npm`.**
 
-You can write the required environment variable once into your `.profile` to update as usual:
-```bash
- [ -z "$npm_config_arch" ] && (echo -e "# npm archive configuration\nexport npm_config_arch=\$(uname -m)" >> ~/.profile)`
+Execute the following commands in a terminal to do all this and be prepared for future updates, where again `npm install` is enough to update.
+```sh
+sudo npm install npm@latest -g
+[ -z "$npm_config_arch" ] && (echo -e "# npm archive configuration\nexport npm_config_arch=\$(uname -m)" >> ~/.profile)
+export npm_config_arch=$(uname -m)
+cd ~/TeleFrame
+rm -rf node_modules/
+npm install --arch=$(uname -m)
 ```
-
-**Before updating to 2.0.0, please read the release notes of release 2.0.0**
 
 ## Table Of Contents
 
@@ -31,6 +35,7 @@ You can write the required environment variable once into your `.profile` to upd
 - [Voice Replies using TeleFrame](#voice-replies-using-teleframe)
 - [Touchscreen support](#touchscreen-support)
 - [Updating](#updating)
+- [Addon interface](#addon-interface)
 - [Bot only mode (no GUI)](#bot-only-mode-no-gui)
 - [Building a TeleFrame](#building-a-teleframe)
 
@@ -80,6 +85,7 @@ The following properties can be configured:
 | `botToken`           | The token of the Telegram Bot, which will recieve the images. How to create a bot and get the token is explained [here](https://core.telegram.org/bots#6-botfather). |
 | `whitelistChats`     | Use this to only allow certain users to send photos to your TeleFrame. See hints below.                                                                              |
 | `whitelistAdmins`    | Use this to increase individual users as admin.                                                                                                                      |
+| `screenConfig`       | Defines the configuration file of your screen, see folder TeleFrame/config/screens/ for possible configurations. Default value is hdmi_default.js.                   |
 | `playSoundOnRecieve` | Play a sound on recieving a message, set `false` to turn off.                                                                                                        |
 | `showVideos`         | When set to true, videos that are send to the bot are also shown.                                                                                                    |
 | `playVideoAudio`     | If recieved videos should be played with sound or not.                                                                                                               |
@@ -95,6 +101,8 @@ The following properties can be configured:
 | `toggleMonitor`      | When set to true, TeleFrame will switch the monitor off and on at the defined hours.                                                                                 |
 | `turnOnHour`         | Defines when the monitor should be turned on.                                                                                                                        |
 | `turnOffHour`        | Defines when the monitor should be turned off.                                                                                                                       |
+| `switchLedsOff`      | Defines if the 2 LEDs on the RaspberryPi should be switched off.                                                                                                     |
+| `botReply`           | Defines if the bot should answer on images or videos with a short reply (:+1: :camera_flash: for images, :+1: :movie_camera: for movies). Also throws a warning on receiving unknown file extensions. |
 | `confirmDeleteImage` | Defines if to show a confirm message before delete an image `true` or `false`                                                                                        |
 | `confirmShutdown`    | Defines if to show a confirm message before shutdown the system `true` or `false`                                                                                    |
 | `confirmReboot`      | Defines if to show a confirm message before rebooting the system `true` or `false`                                                                                   |
@@ -117,6 +125,7 @@ The touchBar object takes the height of the touchbar, optionally the autoHideTim
 
 | **Element**             | **Description**                                                                           |
 | ----------------------- | ----------------------------------------------------------------------------------------- |
+| `showNewest`            | Navigate last arrived image. 																													|
 | `previousImage`         | Navigate to the previous Image. 																													|
 | `nextImage`  						| Navigate to the next Image. 																															|
 | `play`         					| Resume slideshow. 																																				|
@@ -189,6 +198,10 @@ git pull && npm install
 
 If you changed nothing more than the config, this should work without any problems.
 Type `git status` to see your changes, if there are any, you can reset them with `git reset --hard`. After that, git pull should be possible.
+
+## Addon interface
+
+TeleFrame provides an addon interface to implement own extensions. See [documentation addon interface](addons/README.md).
 
 ## Bot only mode (no GUI)
 

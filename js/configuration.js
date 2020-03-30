@@ -21,16 +21,10 @@ const prepareUserConfig = (conf, defConf, userConf, key, value) => {
   if (typeof defConf[key] === 'undefined') {
     userConf[key] = value;
   } else if (Array.isArray(value)) {
-    let setArray = (!Array.isArray(defConf[key]) || value.length !== defConf[key].length);
-    if (!setArray) {
-      for(let i = 0; i < value.length; i++) {
-        if (value[i] !== defConf[key][i]) {
-            setArray = true;
-            break;
-        }
-      }
-    }
-    if (setArray) {
+    if ((!Array.isArray(defConf[key])
+      || value.length !== defConf[key].length
+      || JSON.stringify(defConf[key]) !== JSON.stringify(value))) {
+
       userConf[key] = value;
     }
   } else if (value instanceof Object) {
@@ -119,10 +113,16 @@ if (fs.existsSync(configPath)) {
   configuration.writeConfig();
 }
 
+// load the screen switch configuration
+const screen = require(__dirname + '/../' + configuration.screenConfig);
+
 // load the phrases
 require('./initLanguage')(configuration);
 
 /*************** DO NOT EDIT THE LINE BELOW ***************/
 if (typeof module !== "undefined") {
-  module.exports = configuration;
+  module.exports = {
+    config: configuration,
+    screen: screen
+  };
 }

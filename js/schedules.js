@@ -2,36 +2,53 @@ var schedule = require('node-schedule');
 const exec = require("child_process").exec;
 
 var schedules = class {
-  constructor(config, logger) {
+    constructor(config, screen, logger, addonInterface) {
     this.turnOnHour = config.turnOnHour;
     this.turnOffHour = config.turnOffHour;
 	this.rebootHour = config.rebootHour;
+    this.screen = screen;
+    this.screen.screenOn = true;
     this.logger = logger;
+    this.addonInterface = addonInterface;
     this.opts = {timeout: 15000};
     var self = this;
 
-    //generate schedule for turning the monitor on
-    this.monitorOnSchedule = schedule.scheduleJob('0 0 ' + this.turnOnHour.toString() + ' * * *', function() {
-      self.turnMonitorOn();
-    });
+    // check if the screen configuration needs to be initialized
+    if (this.screen.init && typeof this.screen.init === 'function') {
+      this.screen.init(config.screenSwitchOptions, this.logger);
+    }
 
-    //generate schedule for turning the monitor off
-    this.monitorOffSchedule = schedule.scheduleJob('0 0 ' + this.turnOffHour.toString() + ' * * *', function() {
-      self.turnMonitorOff();
-    });
-	
-	this.rebootSchedule = schedule.scheduleJob('0 0 ' + this.rebootHour.toString() + ' * * *', function() {
-		self.rebootPi();
-	});
+    // initialize the monitor control if required
+    if(this.screen.cmdInit.length >0){
+	     exec(this.screen.cmdInit , this.opts, function(error, stdout, stderr) {
+        self.checkForExecError(error, stdout, stderr);
+      });
+    }
 
-    this.logger.info('Scheduler started ...')
+    // create scheduler
+    if (config.toggleMonitor && parseInt(this.turnOnHour) >= 0 && parseInt(this.turnOffHour) <= 24)
+    {
+      //generate schedule for turning the monitor on
+      this.monitorOnSchedule = schedule.scheduleJob('0 0 ' + this.turnOnHour.toString() + ' * * *', function() {
+        self.turnMonitorOn();
+      });
+      //generate schedule for turning the monitor off
+      this.monitorOffSchedule = schedule.scheduleJob('0 0 ' + this.turnOffHour.toString() + ' * * *', function() {
+        self.turnMonitorOff();
+      });
 
+      this.logger.info('Scheduler started ...')
+    }
   }
 
   // execute command for turning the monitor on
   turnMonitorOn() {
     var self = this;
-    exec("bash ./tools/screen_switch.sh", self.opts, function(error, stdout, stderr) {
+    exec(self.screen.cmdBacklightOn, self.opts, function(error, stdout, stderr) {
+      if (!error) {
+        self.screen.screenOn = true;
+        self.addonInterface.executeEventCallbacks('screenOn', true)
+      }
       self.checkForExecError(error, stdout, stderr);
     });
   }
@@ -39,15 +56,11 @@ var schedules = class {
   // execute command for turning the monitor off
   turnMonitorOff() {
     var self = this;
-    exec("bash ./tools/screen_switch.sh", self.opts, function(error, stdout, stderr) {
-      self.checkForExecError(error, stdout, stderr);
-    });
-  }
-  
-  // restart teleframe
-  rebootPi() {
-    var self = this;
-    exec("pm2 restart TeleFrame", self.opts, function(error, stdout, stderr) {
+    exec(self.screen.cmdBacklightOff, self.opts, function(error, stdout, stderr) {
+      if (!error) {
+        self.screen.screenOn = false;
+        self.addonInterface.executeEventCallbacks('screenOn', false)
+      }
       self.checkForExecError(error, stdout, stderr);
     });
   }
@@ -55,10 +68,9 @@ var schedules = class {
 
   //check for execution error
   checkForExecError(error, stdout, stderr, res) {
-		console.log(stdout);
-		console.log(stderr);
+    this.logger.info(stdout);
 		if (error) {
-			console.log(error);
+			this.logger.error(error);
 			return;
 		}
 	}

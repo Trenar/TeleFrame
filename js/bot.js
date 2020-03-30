@@ -4,36 +4,21 @@ const Extra = require('telegraf/extra')
 const download = require("image-downloader");
 const moment = require("moment");
 const exec = require("child_process").exec;
-
 const fs = require(`fs`);
+const botReply = require('./botReply');
 
 var Bot = class {
   constructor(
-    botToken,
-    imageFolder,
     imageWatchdog,
-    showVideo,
-    whitelistChats,
-    whitelistAdmins,
-    voiceReply,
     logger,
-    emitter,
-    ipcMain,
     config
   ) {
     var self = this;
-    this.bot = new Telegraf(botToken);
-    this.telegram = new Telegram(botToken);
+    this.bot = new Telegraf(config.botToken);
+    this.telegram = new Telegram(config.botToken);
     this.logger = logger;
-    this.imageFolder = imageFolder;
     this.imageWatchdog = imageWatchdog;
-    this.showVideo = showVideo;
-    this.whitelistChats = whitelistChats;
-    this.whitelistAdmins = whitelistAdmins;
-    this.voiceReply = voiceReply;
     this.config = config;
-    this.emitter = emitter;
-    this.ipcMain = ipcMain;
 
     //get bot name
     this.bot.telegram.getMe().then((botInfo) => {
@@ -44,29 +29,27 @@ var Bot = class {
     });
 
     //Welcome message on bot start
-    this.bot.start((ctx) => ctx.reply("Welcome"));
+    this.bot.start((ctx) => botReply(ctx, 'welcome'));
 
     //Help message
-    this.bot.help((ctx) => ctx.reply("Send me an image or type /helpAdmin for admin actions."));
+    this.bot.help((ctx) => botReply(ctx, 'help'));
 
 
     //Middleware Check for whitelisted  ChatID
     const isChatWhitelisted = (ctx, next) => {
       if (
         (
-          this.whitelistChats.length > 0 &&
-          this.whitelistChats.indexOf(ctx.message.chat.id) == -1
+          config.whitelistChats.length > 0 &&
+          config.whitelistChats.indexOf(ctx.message.chat.id) == -1
         )
       ){
         this.logger.info(
           "Whitelist triggered:",
           ctx.message.chat.id,
-          this.whitelistChats,
-          this.whitelistChats.indexOf(ctx.message.chat.id)
+          config.whitelistChats,
+          config.whitelistChats.indexOf(ctx.message.chat.id)
         );
-        ctx.reply(
-          "Hey there, this bot is whitelisted, pls add your chat id to the config file"
-        );
+        botReply(ctx, 'whitelistInfo');
 
         //Break if Chat is not whitelisted
         return ;
@@ -79,17 +62,15 @@ var Bot = class {
     //Middleware Check for whitelisted  ChatID
     const isAdminWhitelisted = (ctx, next) => {
       if (
-          this.whitelistAdmins.indexOf(ctx.message.chat.id) == -1
+          config.whitelistAdmins.indexOf(ctx.message.chat.id) == -1
       ){
         this.logger.info(
           "Admin-Whitelist triggered:",
           ctx.message.chat.id,
-          this.whitelistAdmins,
-          this.whitelistAdmins.indexOf(ctx.message.chat.id)
+          config.whitelistAdmins,
+          config.whitelistAdmins.indexOf(ctx.message.chat.id)
         );
-        ctx.reply(
-          "Hey the Admin-Actions of this bot are whitelisted, pls add your chat id to the config file"
-        );
+        botReply(ctx, 'whitelistAdminInfo');
 
         //Break if Chat is not whitelisted
         return ;
@@ -109,25 +90,22 @@ var Bot = class {
         fileId = ctx.message.document.file_id;
       }
 
-      
       this.telegram.getFileLink(fileId).then((link) => {
         // check for supported file types
         if (link.match(/\.(mp4|jpg|gif|png)$/) === null) {
-          ctx.reply("I dont' know how to handle this file format. Try something else.");  
+          if (config.botReply) {
+            botReply(ctx, 'documentFormatError');
+          }
           return;
         }
 
         let fileExtension = '.' + link.split('.').pop();
-        if (fileExtension.match(/\.(mp4|gif)$/)){
-          ctx.reply("\u{1F44D}\u{1F3A5}");  
-        } else if (fileExtension.match(/\.(jpg|png)$/)){
-          ctx.reply("\u{1F44D}\u{1F4F8}");
-        }
-        if (fileExtension !== '.mp4' || this.showVideo) {
+
+        if (fileExtension !== '.mp4' || config.showVideos) {
           download
             .image({
               url: link,
-              dest: this.imageFolder + "/" + moment().format("x") + fileExtension
+              dest: config.imageFolder + "/" + moment().format("x") + fileExtension
             })
             .then(({ filename, image }) => {
               var chatName = ''
@@ -144,23 +122,37 @@ var Bot = class {
                 chatName,
                 ctx.message.message_id
               );
+              // let bot reply, if wanted and Download was successful
+              if (config.botReply) {
+                if (fileExtension.match(/\.(mp4|gif)$/)){
+                  botReply(ctx, 'videoReceived');
+                } else if (fileExtension.match(/\.(jpg|png)$/)){
+                  botReply(ctx, 'imageReceived');
+                }
+              }
             })
             .catch((err) => {
-              this.logger.error(err);
+              this.logger.error(err.stack);
             });
-          }
+          }else{
+            if (config.botReply) {
+              botReply(ctx, 'videoReceivedError');
+			}
+		  }
+        })
+        .catch((err) => {
+          this.logger.error('Download: ' + err.stack);
+          ctx.reply('Sorry: ' + err.toString());
         });
     });
 
     this.bot.catch((err) => {
-      this.logger.error(err);
+      this.logger.error(err.stack);
     });
 
     //Some small conversation
     this.bot.hears(/^hi/i, (ctx) => {
-      ctx.reply(
-        `Hey there ${ctx.chat.first_name} \nYour ChatID is ${ctx.chat.id}`
-      );
+      botReply(ctx, 'hiReply', ctx.chat.first_name, ctx.chat.id);
       this.logger.info(ctx.chat);
     });
 
@@ -176,17 +168,17 @@ var Bot = class {
         this.bot.command(action.name, isAdminWhitelisted, (ctx) => {
           this.logger.warn("Command received: "+action.name);
           this.logger.warn(action.command);
-          ctx.reply("Triggered Action '"+action.name+"'");
+          botReply(ctx, 'adminActionTriggered', action.name);
 
           exec(action.command, (error, stdout, stderr) => {
             if (error) {
               console.error(stderr);
-              ctx.reply("ERROR!!!\n\nExitcode: "+error.code+"\nStdErr: "+stderr);
+              botReply(ctx, 'adminActionError', action.name, error.code, stderr);
               return;
             }
 
             console.log(stdout)
-            ctx.reply("SUCCESS!!!\n\n"+stdout);
+            botReply(ctx, 'adminActionSuccess', action.name, stdout);
           });
         })
 
@@ -216,7 +208,7 @@ var Bot = class {
 
   sendMessage(message) {
     // function to send messages, used for whitlist handling
-    return this.bot.telegram.sendMessage(this.whitelistChats[0], message);
+    return this.bot.telegram.sendMessage(config.whitelistChats[0], message);
   }
 
   sendAudio(filename, chatId, messageId) {

@@ -1,6 +1,8 @@
 var defaultConfig = {
   // The token of the Telegram Bot, which will recieve the images.
   // How to create a bot and get the token is explained [here](https://core.telegram.org/bots#6-botfather)
+  // If you want to disable the bot because you might use an addon that updates the images, use
+  //   botToken: 'bot-disabled',
   //botToken: '<your bot token>',
 
   // Use this to only allow certain users to send photos to your TeleFrame. See hints in README.md
@@ -8,6 +10,16 @@ var defaultConfig = {
 
   // Use this to name individual users as Admin. See hints in README.md
   whitelistAdmins: [],
+
+  // Use this to configure the connected screen
+  // A standard HDMI screen is used by default.
+  screenConfig: "./config/screens/hdmi_default.js",
+
+  // Object to define options for the specified screenConfig.
+  // Check the screens/<config>.js if it requires configuration.
+  // This obejct will be passed to the screen.configure() member, if defined.
+  // For example - screenSwitchOptions: { pin: 29}
+  screenSwitchOptions: {},
 
   // Define the language to use.
   // If the language is not defined, the system language is loaded, if available.
@@ -64,6 +76,12 @@ var defaultConfig = {
   // Defines when the monitor shuld be turned off.
   turnOffHour: 22,
 
+  // Defines if the bot should answer on images or videos with a short reply
+  botReply: true,
+
+  // Defines if the 2 LEDs of the Raspberry board are switched off
+  switchLedsOff: false,
+
   touchBar: {
     height: "75px",
     // timout to automatically hide the touchbar.
@@ -72,10 +90,13 @@ var defaultConfig = {
 
     // Defines an objectspecifying the touchbar icons to enable
     elements: [
-      // Navigate to the previous Image.
+      // Show the recently arrived images.
+      "showNewest",
+
+      // Navigate to the previous image.
       "previousImage",
 
-      //Navigate to the next Image.
+      //Navigate to the next image.
       "nextImage",
 
       //  Resume slideshow.
@@ -130,8 +151,8 @@ var defaultConfig = {
 	//Global Switch to enable the Admin-Actions
     allowAdminAction: true,
 
-	//Defines an array of action-objects
-	actions: [
+	  //Defines an array of action-objects
+	  actions: [
 		// Example Admin-Action:
 		{
 			// Name of the action
@@ -153,8 +174,19 @@ var defaultConfig = {
 		// Admin-Action for stoping the OpenVPN-Client
 		{name: "stopOpenvpn", command: "systemctl openvpn stop", enable: true}
     ]
-  }
+  },
 
+  // options for the addonHandler class
+  addonInterface: {
+    // configure which types should be logged
+    logging: ['info', 'warn', 'error'],
+    // The AddonInterface will try to load all configured addons.
+    // To enable an addon it requires at least the directory name from
+    // the addons folder as the key and an empty config object.
+    // for example: "testAddon": {}
+    addons: {
+    }
+  }
 };
 
 /*************** DO NOT EDIT THE LINE BELOW ***************/
