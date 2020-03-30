@@ -460,11 +460,6 @@ function setTouchbarIconStatus() {
       $('.starImage > i').removeClass('fas').addClass('far');
     }
     if (isPaused) {
-<<<<<<< HEAD
-      touchBarElements["playPause"].iconElement.classList = "far fa-play-circle";
-    } else {
-      touchBarElements["playPause"].iconElement.classList = "far fa-pause-circle";
-=======
       $('.playPause > i').removeClass('fa-play-circle').addClass('fa-pause-circle');
     } else {
       $('.playPause > i').removeClass('fa-pause-circle').addClass('fa-play-circle');
@@ -474,7 +469,6 @@ function setTouchbarIconStatus() {
       $('.showNewest > i').removeClass('fa-history fa-images').addClass('fa-image new-asset');
     } else {
       $('.showNewest > i').removeClass('fa-image fa-images new-asset').addClass('fa-history');
->>>>>>> ced06bacaeff2cf270ec0048520573053aa2dfb4
     }
   }
   if (images.length > 1) {
